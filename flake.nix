@@ -2,8 +2,8 @@
   description = "A declarative GUI toolkit to build native user interfaces";
 
   inputs = {
-    nixpkgs.url  = github:NixOS/nixpkgs;
-    utils.url    = github:numtide/flake-utils;
+    nixpkgs.url   = github:NixOS/nixpkgs;
+    utils.url     = github:numtide/flake-utils;
   };
 
   outputs = inputs @ { self, utils, ... }: utils.lib.eachDefaultSystem (system: let
