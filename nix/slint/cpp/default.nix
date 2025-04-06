@@ -9,7 +9,7 @@
 }:
 
 stdenv.mkDerivation rec {
-  pname = "slint-api-cpp";
+  pname = "slint-cpp";
 
   inherit version;
   inherit src;
@@ -36,10 +36,6 @@ stdenv.mkDerivation rec {
     corrosion
   ];
 
-  propagatedBuildInputs = [
-    fontconfig
-  ];
-
   cargoDeps = rustPlatform.importCargoLock {
     lockFile = "${src}/Cargo.lock";
   };
@@ -47,7 +43,16 @@ stdenv.mkDerivation rec {
   auditable = false;
   doCheck = false;
 
-  #postPatch = ''
-  #  ln -s ${lockFile} Cargo.lock
-  #'';
+  postFixup = ''
+    function addDynamicLibrariesRunpath() {
+      local file="$1"
+      local origRpath="$(patchelf --print-rpath "$file")"
+      patchelf --set-rpath "${lib.makeLibraryPath [ libGL libxkbcommon wayland fontconfig ]}:$origRpath" "$file"
+    }
+
+    so="$out/lib/libslint_cpp.so"
+
+    addDynamicLibrariesRunpath "$so"
+    addDriverRunpath "$so"
+  '';
 }
