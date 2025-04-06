@@ -436,7 +436,7 @@ if(SLINT_BUILD_RUNTIME)
 
             if(value)
                 get_filename_component(value ${value} NAME)
-                list(APPEND SLINT_LIB_PROPERTIES ${prop} "\${_IMPORT_PREFIX}/${CMAKE_INSTALL_LIBDIR}/${value}")
+                list(APPEND SLINT_LIB_PROPERTIES ${prop} "${CMAKE_INSTALL_LIBDIR}/${value}")
             endif()
         endforeach()
 
