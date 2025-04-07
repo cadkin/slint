@@ -34,6 +34,13 @@ stdenv.mkDerivation rec {
 
   buildInputs = [
     corrosion
+    libGL
+    xorg.libxcb
+    xorg.libX11
+    xorg.libXcursor
+    xorg.libXi
+    libxkbcommon
+    wayland
   ] ++ lib.optionals (backend == "qt") [
     qt6.qtbase
   ] ++ lib.optionals (backend == "linuxkms") [

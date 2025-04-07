@@ -1,7 +1,9 @@
 {
   src, version,
 
-  lib, stdenv, rustPlatform
+  lib, stdenv, rustPlatform, addDriverRunpath,
+
+  libGL, xorg, libxkbcommon, wayland, fontconfig
 }:
 
 rustPlatform.buildRustPackage rec {
@@ -11,11 +13,18 @@ rustPlatform.buildRustPackage rec {
   inherit src;
 
   nativeBuildInputs = [
-    # NOP
+    addDriverRunpath
   ];
 
   buildInputs = [
-    # NOP
+    libGL
+    xorg.libxcb
+    xorg.libX11
+    xorg.libXcursor
+    xorg.libXi
+    xorg.libxcb
+    libxkbcommon
+    wayland
   ];
 
   cargoDeps = rustPlatform.importCargoLock {
@@ -28,4 +37,27 @@ rustPlatform.buildRustPackage rec {
 
   auditable = false;
   doCheck = false;
+
+  postFixup = ''
+    function addDynamicLibrariesRunpath() {
+      local file="$1"
+      local origRpath="$(patchelf --print-rpath "$file")"
+      patchelf --set-rpath "${lib.makeLibraryPath [
+        libGL
+        libxkbcommon
+        wayland
+        fontconfig
+        xorg.libxcb
+        xorg.libX11
+        xorg.libXcursor
+        xorg.libXi
+      ]}:$origRpath" "$file"
+    }
+
+    exec="$out/bin/slint-viewer"
+
+    addDynamicLibrariesRunpath "$exec"
+    addDriverRunpath "$exec"
+  '';
 }
+
