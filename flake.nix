@@ -47,16 +47,22 @@
       in rec {
         nixpkgs = pkgs;
 
+        callPackage = pkgs.lib.callPackageWith (pkgs // { inherit slint; });
+
         slint = rec {
           api = {
-            cpp = pkgs.callPackage ./nix/slint/cpp mkSlintArgs;
+            cpp = callPackage ./nix/slint/cpp mkSlintArgs;
+          };
+          tools = {
+            compiler = callPackage ./nix/slint/compiler mkSlintArgs;
+            viewer   = callPackage ./nix/slint/viewer   mkSlintArgs;
           };
         };
       };
     } // config.pkgs.lib;
 
     legacyPackages = {
-      inherit (lib.mkPackages { inherit pkgs stdenv; } ) slint nixpkgs;
+      inherit (lib.mkPackages { inherit pkgs stdenv; } ) nixpkgs slint;
     };
 
     packages = rec {
