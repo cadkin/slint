@@ -40,14 +40,26 @@
     lib = rec {
       mkPackages = { pkgs, stdenv ? pkgs.stdenv }: let
         mkSlintArgs = {
-          src = self;
+          src = lib.pipe ./. [
+            lib.sources.cleanSource
+            lib.fileset.fromSource
+            (fileset: lib.fileset.difference
+              fileset
+              (lib.fileset.fileFilter (file: file.hasExt "nix") ./.)
+            )
+            (fileset: lib.fileset.toSource { root = ./.; inherit fileset; })
+          ];
           version = fetchVersion;
           inherit stdenv;
         };
       in rec {
         nixpkgs = pkgs;
 
-        callPackage = pkgs.lib.callPackageWith (pkgs // { inherit slint; });
+        callPackage = lib.callPackageWith (pkgs // dependencies // { inherit slint; });
+
+        dependencies = {
+          rust-skia = callPackage ./nix/dependencies/skia { };
+        };
 
         slint = rec {
           api = {
@@ -62,7 +74,7 @@
     } // config.pkgs.lib;
 
     legacyPackages = {
-      inherit (lib.mkPackages { inherit pkgs stdenv; } ) nixpkgs slint;
+      inherit (lib.mkPackages { inherit pkgs stdenv; } ) nixpkgs slint dependencies;
     };
 
     packages = rec {

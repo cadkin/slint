@@ -1,9 +1,9 @@
 {
   src, version,
 
-  lib, stdenv, rustPlatform, addDriverRunpath,
+  lib, stdenv, fetchFromGitHub, linkFarm, runCommand, rustPlatform, addDriverRunpath,
 
-  cmake, pkg-config, cargo, corrosion, rustc, ninja,
+  cmake, pkg-config, gn, cargo, corrosion, rustc, ninja,
 
   slint,
 
@@ -11,7 +11,10 @@
 
   backend ? "winit", renderer ? "femtovg",
 
-  qt6, seatd
+  qt6,
+  seatd, udev, libinput, libgbm,
+
+  rust-skia, python3
 }:
 
 assert lib.assertOneOf "backend"  backend  [ "winit"   "qt"   "linuxkms" ];
@@ -30,6 +33,8 @@ stdenv.mkDerivation rec {
     rustc
     rustPlatform.cargoSetupHook
     addDriverRunpath
+  ] ++ lib.optionals (renderer == "skia") [
+    python3
   ];
 
   buildInputs = [
@@ -45,6 +50,12 @@ stdenv.mkDerivation rec {
     qt6.qtbase
   ] ++ lib.optionals (backend == "linuxkms") [
     seatd
+    udev
+    libinput
+    libgbm
+  ] ++ lib.optionals (renderer == "skia") [
+    rust-skia
+    fontconfig
   ];
 
   propagatedBuildInputs = [
@@ -84,4 +95,10 @@ stdenv.mkDerivation rec {
     addDynamicLibrariesRunpath "$so"
     addDriverRunpath "$so"
   '';
+
+  env = lib.optionalAttrs (renderer == "skia") {
+    SKIA_SOURCE_DIR = "${rust-skia}/";
+    SKIA_LIBRARY_SEARCH_PATH = "${rust-skia}/lib";
+    SKIA_BUILD_DEFINES = builtins.readFile "${rust-skia}/include/skia/skia-defines.txt";
+  };
 }
