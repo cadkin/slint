@@ -88,7 +88,7 @@ stdenv.mkDerivation rec {
     function addDynamicLibrariesRunpath() {
       local file="$1"
       local origRpath="$(patchelf --print-rpath "$file")"
-      patchelf --set-rpath "${lib.makeLibraryPath [ libGL libxkbcommon wayland fontconfig ]}:$origRpath" "$file"
+      patchelf --set-rpath "${lib.makeLibraryPath ([ libGL libxkbcommon wayland fontconfig ] ++ rust-skia-patched.buildInputs)}:$origRpath" "$file"
     }
 
     so="$out/lib/libslint_cpp.so"

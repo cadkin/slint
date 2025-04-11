@@ -1,7 +1,7 @@
 {
   lib, clangStdenv, fetchFromGitHub,
 
-  skia
+  skia,
 }:
 
 (skia.overrideAttrs (final: prev: rec {
@@ -23,6 +23,7 @@
     "skia_use_system_libjpeg_turbo = true"
     "skia_use_harfbuzz=true"
     "skia_enable_skunicode=true"
+    "skia_enable_gpu=true"
   ] ++ (lib.remove "is_component_build=true" prev.gnFlags);
 
   postInstall = ''
@@ -32,7 +33,15 @@
     cp -r $out/include/skia/* $out/include/
     cp -r -L $src/src $out/
 
-    flags=$(for f in obj/**/*.ninja; do sed -nE 's/defines = (.*)/\1/p' "$f"; done | tr ' ' '\n' | sort | uniq | tr '\n' ' ')
+    declare -a files=(
+      "obj/skia.ninja"
+      "obj/gpu.ninja"
+      "obj/modules/skshaper/skshaper.ninja"
+      "obj/modules/skparagraph/skparagraph.ninja"
+      "obj/modules/skunicode/skunicode_core.ninja"
+      "obj/modules/skunicode/skunicode_icu.ninja"
+    )
+    flags=$(for f in "''${files[@]}"; do sed -nE 's/defines = (.*)/\1/p' "$f"; done | tr ' ' '\n' | sort | uniq | tr '\n' ' ')
     echo "Define flags: $flags"
 
     echo "$flags" > $out/include/skia/skia-defines.txt
