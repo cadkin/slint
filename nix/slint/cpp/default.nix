@@ -14,7 +14,7 @@
   qt6,
   seatd, udev, libinput, libgbm,
 
-  rust-skia, python3
+  rust-skia-patched, python3
 }:
 
 assert lib.assertOneOf "backend"  backend  [ "winit"   "qt"   "linuxkms" ];
@@ -35,6 +35,7 @@ stdenv.mkDerivation rec {
     addDriverRunpath
   ] ++ lib.optionals (renderer == "skia") [
     python3
+    rustPlatform.bindgenHook
   ];
 
   buildInputs = [
@@ -54,7 +55,7 @@ stdenv.mkDerivation rec {
     libinput
     libgbm
   ] ++ lib.optionals (renderer == "skia") [
-    rust-skia
+    rust-skia-patched
     fontconfig
   ];
 
@@ -97,8 +98,8 @@ stdenv.mkDerivation rec {
   '';
 
   env = lib.optionalAttrs (renderer == "skia") {
-    SKIA_SOURCE_DIR = "${rust-skia}/";
-    SKIA_LIBRARY_SEARCH_PATH = "${rust-skia}/lib";
-    SKIA_BUILD_DEFINES = builtins.readFile "${rust-skia}/include/skia/skia-defines.txt";
+    SKIA_SOURCE_DIR = "${rust-skia-patched}/";
+    SKIA_LIBRARY_SEARCH_PATH = "${rust-skia-patched}/lib";
+    SKIA_BUILD_DEFINES = builtins.readFile "${rust-skia-patched}/include/skia/skia-defines.txt";
   };
 }

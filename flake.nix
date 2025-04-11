@@ -58,7 +58,7 @@
         callPackage = lib.callPackageWith (pkgs // dependencies // { inherit slint; });
 
         dependencies = {
-          rust-skia = callPackage ./nix/dependencies/skia { };
+          rust-skia-patched = callPackage ./nix/dependencies/skia { };
         };
 
         slint = rec {
