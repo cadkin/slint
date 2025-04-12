@@ -16,14 +16,25 @@
   };
 
   gnFlags = [
-    "skia_enable_pdf=true"
-    "skia_enable_gpu=true"
-    "skia_enable_skshaper=true"
-    "skia_use_gl=true"
+    "skia_enable_gpu = true"
+    "skia_enable_pdf = true"
+    "skia_enable_skottie = false"
+    "skia_enable_skparagraph = true"
+    "skia_enable_skshaper = true"
+    "skia_enable_svg = true"
+    "skia_pdf_subset_harfbuzz = true"
+    "skia_use_expat = true"
+    "skia_use_gl = true"
+    "skia_use_harfbuzz = true"
+    "skia_use_icu = true"
+    "skia_use_libpng_decode = false"
+    "skia_use_libpng_encode = false"
+    "skia_use_libwebp_decode = false"
+    "skia_use_libwebp_encode = false"
+    "skia_use_system_expat = true"
+    "skia_use_system_icu = true"
     "skia_use_system_libjpeg_turbo = true"
-    "skia_use_harfbuzz=true"
-    "skia_enable_skunicode=true"
-    "skia_enable_gpu=true"
+    "skia_use_xps = false"
   ] ++ (lib.remove "is_component_build=true" prev.gnFlags);
 
   postInstall = ''
