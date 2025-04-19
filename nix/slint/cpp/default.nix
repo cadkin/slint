@@ -11,17 +11,19 @@
 
   backend ? "winit", renderer ? "femtovg",
 
+  # backend: qt
   qt6,
+  # backend: linuxkms
   seatd, udev, libinput, libgbm,
-
-  rust-skia-patched, python3
 }:
 
 assert lib.assertOneOf "backend"  backend  [ "winit"   "qt"   "linuxkms" ];
 assert lib.assertOneOf "renderer" renderer [ "femtovg" "skia" "software" ];
 
+assert lib.assertMsg (renderer != "skia") "Skia renderer is not yet supported via Nix.";
+
 stdenv.mkDerivation rec {
-  pname = "slint-cpp";
+  pname = "slint-cpp-${backend}-${renderer}";
 
   inherit version;
   inherit src;
@@ -33,9 +35,6 @@ stdenv.mkDerivation rec {
     rustc
     rustPlatform.cargoSetupHook
     addDriverRunpath
-  ] ++ lib.optionals (renderer == "skia") [
-    python3
-    rustPlatform.bindgenHook
   ];
 
   buildInputs = [
@@ -54,9 +53,6 @@ stdenv.mkDerivation rec {
     udev
     libinput
     libgbm
-  ] ++ lib.optionals (renderer == "skia") [
-    rust-skia-patched
-    fontconfig
   ];
 
   propagatedBuildInputs = [
@@ -88,7 +84,7 @@ stdenv.mkDerivation rec {
     function addDynamicLibrariesRunpath() {
       local file="$1"
       local origRpath="$(patchelf --print-rpath "$file")"
-      patchelf --set-rpath "${lib.makeLibraryPath ([ libGL libxkbcommon wayland fontconfig ] ++ rust-skia-patched.buildInputs)}:$origRpath" "$file"
+      patchelf --set-rpath "${lib.makeLibraryPath [ libGL libxkbcommon wayland fontconfig ]}:$origRpath" "$file"
     }
 
     so="$out/lib/libslint_cpp.so"
@@ -96,10 +92,4 @@ stdenv.mkDerivation rec {
     addDynamicLibrariesRunpath "$so"
     addDriverRunpath "$so"
   '';
-
-  env = lib.optionalAttrs (renderer == "skia") {
-    SKIA_SOURCE_DIR = "${rust-skia-patched}/";
-    SKIA_LIBRARY_SEARCH_PATH = "${rust-skia-patched}/lib";
-    SKIA_BUILD_DEFINES = builtins.readFile "${rust-skia-patched}/include/skia/skia-defines.txt";
-  };
 }

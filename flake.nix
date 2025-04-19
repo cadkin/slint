@@ -55,11 +55,7 @@
       in rec {
         nixpkgs = pkgs;
 
-        callPackage = lib.callPackageWith (pkgs // dependencies // { inherit slint; });
-
-        dependencies = {
-          rust-skia-patched = callPackage ./nix/dependencies/skia { };
-        };
+        callPackage = lib.callPackageWith (pkgs // { inherit slint; });
 
         slint = rec {
           api = {
@@ -74,7 +70,7 @@
     } // config.pkgs.lib;
 
     legacyPackages = {
-      inherit (lib.mkPackages { inherit pkgs stdenv; } ) nixpkgs slint dependencies;
+      inherit (lib.mkPackages { inherit pkgs stdenv; } ) nixpkgs slint;
     };
 
     packages = rec {
@@ -93,7 +89,6 @@
     devShells = rec {
       default = slintDev;
 
-      # Main developer shell.
       slintDev = pkgs.mkShell.override { inherit stdenv; } rec {
         name = "slint-dev";
 
