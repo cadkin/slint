@@ -40,23 +40,37 @@
     lib = rec {
       mkPackages = { pkgs, stdenv ? pkgs.stdenv }: let
         mkSlintArgs = {
-          src = self;
+          src = lib.pipe ./. [
+            lib.sources.cleanSource
+            lib.fileset.fromSource
+            (fileset: lib.fileset.difference
+              fileset
+              (lib.fileset.fileFilter (file: file.hasExt "nix") ./.)
+            )
+            (fileset: lib.fileset.toSource { root = ./.; inherit fileset; })
+          ];
           version = fetchVersion;
           inherit stdenv;
         };
       in rec {
         nixpkgs = pkgs;
 
+        callPackage = lib.callPackageWith (pkgs // { inherit slint; });
+
         slint = rec {
           api = {
-            cpp = pkgs.callPackage ./nix/slint/cpp mkSlintArgs;
+            cpp = callPackage ./nix/slint/cpp mkSlintArgs;
+          };
+          tools = {
+            compiler = callPackage ./nix/slint/compiler mkSlintArgs;
+            viewer   = callPackage ./nix/slint/viewer   mkSlintArgs;
           };
         };
       };
     } // config.pkgs.lib;
 
     legacyPackages = {
-      inherit (lib.mkPackages { inherit pkgs stdenv; } ) slint nixpkgs;
+      inherit (lib.mkPackages { inherit pkgs stdenv; } ) nixpkgs slint;
     };
 
     packages = rec {
@@ -75,7 +89,6 @@
     devShells = rec {
       default = slintDev;
 
-      # Main developer shell.
       slintDev = pkgs.mkShell.override { inherit stdenv; } rec {
         name = "slint-dev";
 
