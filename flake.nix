@@ -40,6 +40,7 @@
     lib = rec {
       mkPackages = { pkgs, stdenv ? pkgs.stdenv }: let
         mkSlintArgs = {
+          # Filter out nix sources so they don't incur extra rebuilds.
           src = lib.pipe ./. [
             lib.sources.cleanSource
             lib.fileset.fromSource
@@ -73,37 +74,11 @@
       inherit (lib.mkPackages { inherit pkgs stdenv; } ) nixpkgs slint;
     };
 
-    packages = rec {
-      default = slint-cpp;
-      slint-cpp = legacyPackages.slint.api.cpp;
-    };
-
     overlays = rec {
       default = slint;
 
       slint = finalPkgs: prevPkgs: {
         inherit (legacyPackages) slint;
-      };
-    };
-
-    devShells = rec {
-      default = slintDev;
-
-      slintDev = pkgs.mkShell.override { inherit stdenv; } rec {
-        name = "slint-dev";
-
-        packages = [
-          pkgs.git
-
-          llvm.tooling.lldb
-          llvm.tooling.clang-tools
-        ] ++ lib.optionals stdenv.isLinux [
-          pkgs.cntr
-        ];
-
-        inputsFrom = [
-          legacyPackages.slint.api.cpp
-        ];
       };
     };
   });
